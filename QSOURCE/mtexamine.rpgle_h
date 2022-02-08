@@ -1,0 +1,20 @@
+**FREE
+
+
+DCL-PR system INT(10) EXTPROC('system');
+    command POINTER VALUE OPTIONS(*STRING);
+END-PR;
+
+
+DCL-PR DoFile INT(20); 
+    File    CHAR(10); 
+    Library CHAR(10); 
+END-PR; 
+
+
+DCL-PR DoProgram INT(20); 
+    Program CHAR(10); 
+    Type    CHAR(10); 
+    Library CHAR(10); 
+END-PR; 
+ 

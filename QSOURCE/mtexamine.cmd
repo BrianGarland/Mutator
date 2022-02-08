@@ -1,12 +1,12 @@
 /* mtExamine -- Analyze an object */
 
       CMD        PROMPT('Analyze an object')                        
-      PARM       KWD(OBJ) TYPE(*NAME) LEN(10) MIN(1) +              
-                   PROMPT('Object')                                 
       PARM       KWD(LIB) TYPE(*NAME) LEN(10) MIN(1) +              
                    PROMPT('Object library')                         
+      PARM       KWD(OBJ) TYPE(*NAME) LEN(10) MIN(1) +              
+                   SPCVAL((*ALL *ALL)) PROMPT('Object name')                                 
       PARM       KWD(TYPE) TYPE(*CHAR) LEN(10) MIN(1) +             
-                   RSTD(*YES) VALUES(*ALRTBL *AUTL *BNDDIR +        
+                   RSTD(*YES) VALUES(*ALL *ALRTBL *AUTL *BNDDIR +        
                    *CHGFMT *CLD *CLS *CMD *CRQD *CSI *CSPMAP +      
                    *CSPRBL *DTAARA *FCT *FILE *FNTRSC +             
                    *FNTTBL *FORMDF *FTR *GSS *JOBD *JOBQ +          

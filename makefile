@@ -18,7 +18,7 @@ mtpgmfil.sql: mtfil.sql mtpgm.sql
 
 mtpgmfld.sql: mtpgm.sql
 
-mtexamine.pgm: mtexamine.rpgle
+mtexamine.pgm: mtexamine.rpgle mtdofile.rpgle mtdopgm.rpgle
 
 #----------
 
@@ -33,13 +33,14 @@ mtexamine.pgm: mtexamine.rpgle
 	@touch $@
 
 %.cmd:
+	-system -qi "CRTSRCPF FILE($(BIN_LIB)/QSOURCE) MBR(*NONE) RCDLEN(132)"
 	system "CPYFRMSTMF FROMSTMF('$(SRC_FLR)/$*.cmd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSOURCE.file/$*.mbr') MBROPT(*REPLACE)"
 	system "CRTCMD CMD($(BIN_LIB)/$*) PGM($(BIN_LIB)/$*) SRCFILE($(BIN_LIB)/QSOURCE) SRCMBR($*) TEXT('$(NAME)') REPLACE(*YES)"
 	@touch $@
 
 %.rpgle:
 	liblist -a $(BIN_LIB);\
-	system "CRTSQLRPGI OBJ($(BIN_LIB)/$*) SRCSTMF('$(SRC_FLR)/$*.rpgle') COMMIT(*NONE) RDB(*LOCAL) OBJTYPE(*MODULE) TEXT('$(NAME)') TGTRLS($(TGTRLS)) CLOSQLCSR(*ENDMOD) DLYPRP(*YES) GENLVL(11) REPLACE(*YES) DBGVIEW($(DBGVIEW)) COMPILEOPT('OPTION(*NODEBUGIO)')"
+	system "CRTSQLRPGI OBJ($(BIN_LIB)/$*) SRCSTMF('$(SRC_FLR)/$*.rpgle') INCDIR('$(SRC_FLR)') COMMIT(*NONE) RDB(*LOCAL) OBJTYPE(*MODULE) TEXT('$(NAME)') TGTRLS($(TGTRLS)) CLOSQLCSR(*ENDMOD) DLYPRP(*YES) GENLVL(11) REPLACE(*YES) DBGVIEW($(DBGVIEW)) COMPILEOPT('OPTION(*NODEBUGIO) INCDIR($(SRC_FLR))')"
 	@touch $@
 
 %.pgm:
