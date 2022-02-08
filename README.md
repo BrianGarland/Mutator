@@ -16,7 +16,7 @@ This is a work in progress and will be broken up into multiple phases
 ### Usage instructions
 
 1. `ADDLIBLE MUTATOR` (or whatever library you used)
-2. `MTEXAMINE` for each object in your application. 
+2. `MTEXAMINE` -- prompt the command.  It can be run for one/many/all objects in a library
 3. hang tight, there is more to come
 
 ### License
