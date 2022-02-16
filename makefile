@@ -7,7 +7,7 @@ SHELL=/QOpenSys/usr/bin/qsh
 
 #----------
 
-all: $(BIN_LIB).lib mtcfg.sql mtfilfil.sql mtfilfld.sql mtpgmfil.sql mtpgmfld.sql mtexamine.pgm mtexamine.cmd
+all: $(BIN_LIB).lib mtcfg.sql mtfilfil.sql mtfilfld.sql mtpgmfil.sql mtpgmfld.sql mtpgmds.sql mtexamine.pgm mtexamine.cmd
 	@echo "Built all"
 
 mtfilfil.sql: mtfil.sql
@@ -17,6 +17,8 @@ mtfilfld.sql: mtfil.sql
 mtpgmfil.sql: mtfil.sql mtpgm.sql 
 
 mtpgmfld.sql: mtpgm.sql
+
+mtpgmds.sql: mtpgm.sql
 
 mtexamine.pgm: mtexamine.rpgle mtdofile.rpgle mtdopgm.rpgle
 

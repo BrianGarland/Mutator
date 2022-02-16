@@ -11,7 +11,7 @@ END-DS;
 
 
 //
-// DoProgram - Process a program
+// DoProgram - Process a program, module, or service program
 //
 
 DCL-PROC DoProgram EXPORT;
@@ -84,7 +84,7 @@ END-PI;
         NullInds INT(5) DIM(2);
     END-DS;
 
-    DCL-DS Mutator_Program_File_Cross_ReferenceDS EXTNAME('MTPGMFIL') QUALIFIED INZ;
+    DCL-DS Mutator_Program_File_Cross_ReferenceDS EXTNAME('MTPGMFIL') ALIAS QUALIFIED INZ;
     END-DS;
 
     system('DSPPGMREF PGM(' + %TRIM(Library) + '/' + %TRIM(Program) + ') '
@@ -181,21 +181,28 @@ END-PI;
     DCL-DS InputDS LEN(132);
         iStar          CHAR(1)   POS(1);
         iMsgID         CHAR(7)   POS(2);
-        iSectionHeader CHAR(24)  POS(7);
+        iSectionHeader CHAR(28)  POS(7);
+        iXrefEnd       CHAR(68)  POS(8);
+        iDataStructure CHAR(17)  POS(9);
         iFieldShort    CHAR(17)  POS(10);
         iFieldLong     CHAR(123) POS(10);
         iAttribute3    CHAR(3)   POS(27);
+        iXrefStart     CHAR(30)  POS(27);
         iAttribute10   CHAR(10)  POS(28);
         iProcName      CHAR(92)  POS(41);
+        iDSName        CHAR(30)  POS(41);
         iReferences    CHAR(51)  POS(48);
     END-DS;
 
-    DCL-DS OutputDS EXTNAME('MTPGMFLD') QUALIFIED INZ;
+    DCL-DS OutputFieldDS EXTNAME('MTPGMFLD') ALIAS QUALIFIED INZ;
     END-DS;
 
-    DCL-S AllDone       IND INZ(*OFF);
+    DCL-DS OutputDataStructureDS EXTNAME('MTPGMDS') ALIAS QUALIFIED INZ;
+    END-DS;
+
     DCL-S CompilePgm    CHAR(21);
     DCL-S DataStructure CHAR(100) DIM(10) STATIC;
+    DCL-S DoingXref     IND INZ(*OFF);
     DCL-S GlobalSection IND INZ(*OFF);
     DCL-S I             UNS(5);
     DCL-S Indent        UNS(5);
@@ -203,13 +210,15 @@ END-PI;
     DCL-S isQualified   IND;
     DCL-S ReadCount     UNS(5) INZ(0);
     DCL-S SaveName      CHAR(100);
+    DCL-S Section       UNS(5) INZ(0);
     DCL-S ShortOrLong   CHAR(1);
     DCL-S SrcFile       CHAR(10);
     DCL-S SrcLib        CHAR(10);
     DCL-S SrcMbr        CHAR(10);
 
 
-    OutputDS.Program = Identity;
+    OutputFieldDS.Program = Identity;
+    OutputDataStructureDS.Program = Identity;
 
     EXEC SQL SELECT Source_Library, Source_File, Source_Member
              INTO :SrcLib, :SrcFile, :SrcMbr
@@ -245,21 +254,45 @@ END-PI;
                                
     DOW NOT %EOF;                  
 
-        IF iSectionHeader = 'Indicator References';
-            AllDone = *ON;
+        // Figure out if we are in the cross reference section of the spooled file
+
+        IF iXrefStart = 'C r o s s   R e f e r e n c e';
+            DoingXref = *ON;
         ENDIF;
 
-        IF NOT AllDone;
+        IF iXrefEnd = '* * * * *   E N D   O F   C R O S S   R E F E R E N C E   * * * * *';
+            DoingXref = *OFF;
+        ENDIF;
 
-            IF GlobalSection;
+        // If we are in the cross reference section we need to do something with the data 
+
+        IF DoingXref;
+
+            // Figure out which part of the cross reference we are in 
+            SELECT;
+            WHEN iSectionHeader = 'File and Record References:';
+                Section = 1;
+            WHEN iSectionHeader = 'Global Field References:';
+                Section = 2;
+            WHEN iSectionHeader = 'Indicator References:';
+                Section = 3;
+            ENDSL;
+
+            // Process logic for each section 
+            SELECT;
+            WHEN Section = 1;
+                // Nothing to save here, using DSPPGMREF to get this info
+            WHEN Section = 2;
                 EXSR SaveGlobal;
-            ELSE;
-                EXSR SaveFile;
-            ENDIF;
+            WHEN Section = 3;
+                // No need to save indicators    
+            ENDSL;
 
-            IF iSectionHeader = 'Global Field References:';
-                GlobalSection = *ON;
-            ENDIF;
+        ELSE;
+
+            // Before the cross reference section we need to catch any externally 
+            // described data structures
+            EXSR ExternalDS;
 
         ENDIF;
 
@@ -276,7 +309,7 @@ END-PI;
     //-------------------------
 
         IF iSectionHeader = 'Field References for sub';
-            OutputDS.Procedure = iProcName;
+            OutputFieldDS.Procedure = iProcName;
         ENDIF;
 
         IF iAttribute3 = ' A('
@@ -315,9 +348,9 @@ END-PI;
 
             IF SaveName <> *BLANKS;
                 IF isQualified;
-                    OutputDS.Field = %TRIMR(DataStructure(Indent)) + '.' + SaveName;
+                    OutputFieldDS.Field = %TRIMR(DataStructure(Indent)) + '.' + SaveName;
                 ELSE;
-                    OutputDS.Field = SaveName;
+                    OutputFieldDS.Field = SaveName;
                 ENDIF;
 
                 IF iAttribute3 = ' DS';
@@ -328,14 +361,14 @@ END-PI;
 
                 IF iMsgID <> 'RNF7031';
 
-                    OutputDS.Attribute = iAttribute10;
+                    OutputFieldDS.Attribute = iAttribute10;
 
                     FOR i = 1 TO 4;
-                        OutputDS.Reference = %SUBST(iReferences:(i-1)*12+1:12);
-                        IF OutputDS.Reference <> *BLANKS;
+                        OutputFieldDS.Reference = %SUBST(iReferences:(i-1)*12+1:12);
+                        IF OutputFieldDS.Reference <> *BLANKS;
                             EXEC SQL INSERT INTO Mutator_Program_Fields
                                      OVERRIDING USER VALUE
-                                     VALUES(:OutputDS);
+                                     VALUES(:OutputFieldDS);
                         ENDIF;
                     ENDFOR;
 
@@ -372,9 +405,24 @@ END-PI;
 
     ENDSR;
 
-    //--------------------------------------
-    BEGSR SaveFile;
-    //--------------------------------------
+    //-------------------------
+    BEGSR ExternalDS;
+    //-------------------------
+
+        IF iDataStructure = '* Data structure';
+            OutputDataStructureDS.DataStructure = iDSName;
+        ENDIF;
+
+        IF iDataStructure = '* External format';
+            OutputDataStructureDS.File = iDSName;
+            Pos = %SCAN(':':OutputDataStructureDS.File);
+            IF Pos <> 0;
+                 OutputDataStructureDS.File = %SUBST(OutputDataStructureDS.File:1:Pos-1);
+            ENDIF;     
+            EXEC SQL INSERT INTO Mutator_Program_DataStructures
+                        OVERRIDING USER VALUE
+                        VALUES(:OutputDataStructureDS);
+        ENDIF;
 
     ENDSR;
 

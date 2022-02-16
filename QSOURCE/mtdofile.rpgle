@@ -65,7 +65,7 @@ END-PI;
     // Fields in the file
     EXEC SQL INSERT INTO Mutator_File_Fields
              OVERRIDING USER VALUE
-             SELECT mtfIdentity, Name, sys_CName, ColType, Length, Scale, 0
+             SELECT mtfIdentity, Name, sys_CName, ColType, Length, Scale, label, labeltext, 0
              FROM QSYS2/SYSCOLUMNS
              JOIN Mutator_Files ON (sys_DName,sys_TName) = (Short_Schema,Short_Table)
              WHERE SYS_TName = :File AND SYS_DName = :Library;
