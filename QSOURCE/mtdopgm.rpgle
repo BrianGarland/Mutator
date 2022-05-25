@@ -1,4 +1,4 @@
-**FREE 
+**FREE   
 
 CTL-OPT NOMAIN; 
 
@@ -205,7 +205,7 @@ DCL-PROC DoProgramFields;
     DCL-S GlobalSection IND INZ(*OFF);
     DCL-S I             UNS(5);
     DCL-S Indent        UNS(5);
-    DCL-S Pos           UNS(5);
+    DCL-S POS           UNS(5);
     DCL-S isQualified   IND;
     DCL-S ReadCount     UNS(5) INZ(0);
     DCL-S SaveName      CHAR(100);
@@ -334,15 +334,15 @@ DCL-PROC DoProgramFields;
             ELSE;
                 READP MTCOMPILE InputDS;
                 DOW NOT %EOF;
-                    Pos = %SCAN('...':iFieldLong);
-                    IF Pos > 0;
+                    POS = %SCAN('...':iFieldLong);
+                    IF POS > 0;
                         ShortOrLong = 'L';
                         EXSR GetFieldAttrs;
                         LEAVE;
                     ENDIF;
                     READP MTCOMPILE InputDS;
                 ENDDO;
-                CHAIN readcount MTCOMPILE InputDS;
+                CHAIN ReadCount MTCOMPILE InputDS;
             ENDIF;
 
             IF SaveName <> *BLANKS;
@@ -362,8 +362,8 @@ DCL-PROC DoProgramFields;
 
                     OutputFieldDS.Attribute = iAttribute10;
 
-                    FOR i = 1 TO 4;
-                        OutputFieldDS.Reference = %SUBST(iReferences:(i-1)*12+1:12);
+                    FOR I = 1 TO 4;
+                        OutputFieldDS.Reference = %SUBST(iReferences:(I-1)*12+1:12);
                         IF OutputFieldDS.Reference <> *BLANKS;
                             EXEC SQL INSERT INTO Mutator_Program_Fields
                                      OVERRIDING USER VALUE
@@ -384,9 +384,9 @@ DCL-PROC DoProgramFields;
     //-------------------------
 
         Indent = 0;
-        FOR i = 1 TO 20;
-            IF %SUBST(iFieldShort:i:1) <> ' ';
-                Indent = (i-1)/2;
+        FOR I = 1 TO 20;
+            IF %SUBST(iFieldShort:I:1) <> ' ';
+                Indent = (I-1)/2;
                 LEAVE;
             ENDIF;
         ENDFOR;
@@ -414,9 +414,9 @@ DCL-PROC DoProgramFields;
 
         IF iDataStructure = '* External format';
             OutputDataStructureDS.File = iDSName;
-            Pos = %SCAN(':':OutputDataStructureDS.File);
-            IF Pos <> 0;
-                OutputDataStructureDS.File = %SUBST(OutputDataStructureDS.File:1:Pos-1);
+            POS = %SCAN(':':OutputDataStructureDS.File);
+            IF POS <> 0;
+                OutputDataStructureDS.File = %SUBST(OutputDataStructureDS.File:1:POS-1);
             ENDIF;     
             EXEC SQL INSERT INTO Mutator_Program_DataStructures
                         OVERRIDING USER VALUE
