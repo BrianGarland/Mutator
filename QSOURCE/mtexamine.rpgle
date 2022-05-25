@@ -38,12 +38,12 @@ DOW SQLSTATE < '02000';
     ENDIF;
 
     SELECT;
-    WHEN Type = '*FILE';
-        DoFile(Object:pLibrary);
-    WHEN Type = '*PGM' OR Type = '*MODULE' OR Type = '*SRVPGM';
-        DoProgram(Object:Type:pLibrary);
-    OTHER;
-        // Ignore any other types    
+        WHEN Type = '*FILE';
+            DoFile(Object:pLibrary);
+        WHEN Type = '*PGM' OR Type = '*MODULE' OR Type = '*SRVPGM';
+            DoProgram(Object:Type:pLibrary);
+        OTHER;
+            // Ignore any other types    
     ENDSL;
 
 ENDDO;

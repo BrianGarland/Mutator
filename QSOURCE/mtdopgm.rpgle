@@ -2,7 +2,6 @@
 
 CTL-OPT NOMAIN; 
 
-
 /INCLUDE mtexamine.rpgle_h
 
 DCL-DS PSDS PSDS;
@@ -15,11 +14,11 @@ END-DS;
 //
 
 DCL-PROC DoProgram EXPORT;
-DCL-PI *N INT(20);
-    Program CHAR(10);
-    Type    CHAR(10);
-    Library CHAR(10);
-END-PI;
+    DCL-PI *N INT(20);
+        Program CHAR(10);
+        Type    CHAR(10);
+        Library CHAR(10);
+    END-PI;
 
     DCL-S IdentityValue INT(20);
 
@@ -68,12 +67,12 @@ END-PROC;
 //
  
 DCL-PROC DoProgramFiles;
-DCL-PI *N;
-    Program  CHAR(10);
-    Type     CHAR(10);
-    Library  CHAR(10);
-    Identity INT(20);
-END-PI;
+    DCL-PI *N;
+        Program  CHAR(10);
+        Type     CHAR(10);
+        Library  CHAR(10);
+        Identity INT(20);
+    END-PI;
 
     DCL-DS InputDS QUALIFIED;
         FileIdentity    INT(20);
@@ -160,12 +159,12 @@ END-PROC;
 // ****************** Compile listing cross reference layout *****************
  
 DCL-PROC DoProgramFields;
-DCL-PI *N;
-    Program  CHAR(10);
-    Type     CHAR(10);
-    Library  CHAR(10);
-    Identity INT(20);
-END-PI;
+    DCL-PI *N;
+        Program  CHAR(10);
+        Type     CHAR(10);
+        Library  CHAR(10);
+        Identity INT(20);
+    END-PI;
 
     DCL-F MTCOMPILE DISK(132) EXTFILE('QTEMP/MTCOMPILE') USROPN;              
 
@@ -270,22 +269,22 @@ END-PI;
 
             // Figure out which part of the cross reference we are in 
             SELECT;
-            WHEN iSectionHeader = 'File and Record References:';
-                Section = 1;
-            WHEN iSectionHeader = 'Global Field References:';
-                Section = 2;
-            WHEN iSectionHeader = 'Indicator References:';
-                Section = 3;
+                WHEN iSectionHeader = 'File and Record References:';
+                    Section = 1;
+                WHEN iSectionHeader = 'Global Field References:';
+                    Section = 2;
+                WHEN iSectionHeader = 'Indicator References:';
+                    Section = 3;
             ENDSL;
 
             // Process logic for each section 
             SELECT;
-            WHEN Section = 1;
-                // Nothing to save here, using DSPPGMREF to get this info
-            WHEN Section = 2;
-                EXSR SaveGlobal;
-            WHEN Section = 3;
-                // No need to save indicators    
+                WHEN Section = 1;
+                    // Nothing to save here, using DSPPGMREF to get this info
+                WHEN Section = 2;
+                    EXSR SaveGlobal;
+                WHEN Section = 3;
+                    // No need to save indicators    
             ENDSL;
 
         ELSE;
@@ -417,7 +416,7 @@ END-PI;
             OutputDataStructureDS.File = iDSName;
             Pos = %SCAN(':':OutputDataStructureDS.File);
             IF Pos <> 0;
-                 OutputDataStructureDS.File = %SUBST(OutputDataStructureDS.File:1:Pos-1);
+                OutputDataStructureDS.File = %SUBST(OutputDataStructureDS.File:1:Pos-1);
             ENDIF;     
             EXEC SQL INSERT INTO Mutator_Program_DataStructures
                         OVERRIDING USER VALUE

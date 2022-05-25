@@ -9,10 +9,10 @@ CTL-OPT NOMAIN;
 //
  
 DCL-PROC DoFile EXPORT;
-DCL-PI *N INT(20);
-    File    CHAR(10);
-    Library CHAR(10);
-END-PI;
+    DCL-PI *N INT(20);
+        File    CHAR(10);
+        Library CHAR(10);
+    END-PI;
 
     DCL-S IdentityValue INT(20);
 
